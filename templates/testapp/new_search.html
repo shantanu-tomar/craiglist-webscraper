@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block new_search %}
+<!--script to prevent user from using back button on browser-->
+<script type="text/javascript" >
+   function preventBack(){window.history.forward();}
+    setTimeout("preventBack()", 0);
+    window.onunload=function(){null};
+</script>
+<script>
+	sessionStorage.setItem('query', '{{query}}');
+</script>
+
+<div class= 'container' style='padding-top:25px'>
+	<form id='new_search' action = "{% url 'new_search' %}"  method = 'POST' >   <!--action is the destination url after submit-->
+		<div class='form-row'>
+			<div class='form-group col-sm-8'>
+				<div class='form-row'>
+					<div class= 'col-sm-12'>
+						<input class="form-control" id = 'textbox' type = 'text' name = 'search' value='{{query}}' placeholder = 'search' required>
+					</div>
+				</div>
+				
+				<div class = 'form-row'>
+					<div class = 'col-sm-6'>
+						<input class="form-control" id='sort_param' type = 'text' name = 'sort_param' value='' style='display:none'>
+						<input class="form-control" id='price_min' type = 'text' name = 'price_min' value ='' placeholder = 'min. price (optional)'></div>
+					<div class = 'col-sm-6'>
+						<input class="form-control" id='price_max' type = 'text' name = 'price_max' value ='' placeholder = 'max. price (optional)'></div>
+				</div>		
+				
+				<button style='color:white; background-color:#00163F' id = 'submit_button' class="btn btn" onclick="SubmitSearch()">Submit
+				
+			</div>	
+			
+			<div class='form-group col-sm-4'>	
+				<div class="form-check" style='margin-top:10px; margin-bottom:10px; margin-left:20px;'>
+					<input id='ascRadio' class="form-check-input" name="group1" type="radio" value='priceasc' onclick="Radio(this.value, this.id)" />
+					<label style='color:black' class="form-check-label" for='ascRadio'>
+					Price: low to high
+					</label>
+				</div>
+					
+				<div class="form-check" style='margin-left:20px; margin-bottom:10px'>	
+					<input id='dscRadio' class="form-check-input" name="group1" type="radio" value='pricedsc' onclick='Radio(this.value, this.id)' />
+					<label style='color:black' class="form-check-label" for='dscRadio'>
+					Price: high to low
+					</label>
+				</div>
+				
+				<div class="form-check" style='margin-left:20px; margin-bottom:10px'>
+					<input id='relRadio' class="form-check-input" name="group1" type="radio" value= 'rel' onclick='Radio(this.value, this.id)' checked />
+					<label style='color:black' class="form-check-label" for='relRadio'>
+					Relevance
+					</label>
+				</div>
+				
+				<script>
+					let radio_id = sessionStorage.getItem('radio_id');
+					document.getElementById(radio_id).checked = true;
+					document.getElementById('price_min').value = sessionStorage.getItem('price_min');
+					document.getElementById('price_max').value = sessionStorage.getItem('price_max');
+				</script>
+				
+			</div>
+		</div>
+	</form>
+	
+	
+	
+	<div id='page-nav1' class='row' style= 'margin-top: 50px; text-align:center;'>
+		<div class='col'>
+			{% if final_data.has_other_pages %}
+				
+				{% if final_data.has_previous %}
+					<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page=1'>First</a>
+					<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page={{ final_data.previous_page_number }}'>Previous</a>
+				{% endif %}
+				
+				{% for num in final_data.paginator.page_range %}
+					{% if final_data.number == num %}
+						<a style='background-color: #00163F; color:white' class = 'btn btn mb-4' href= '?page={{ num }}'>{{num}}</a>
+					
+					{% elif num > final_data.number|add:'-3' and num < final_data.number|add:'3' %}
+						<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page={{ num }}'>{{ num }}</a>
+			
+					
+					{% endif %}
+				{% endfor %}
+				
+				{% if final_data.has_next %}
+					<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page={{ final_data.next_page_number }}'>Next</a>
+					<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page={{ final_data.paginator.num_pages }}'>Last</a>
+				{% endif %}
+				
+			{% endif %}
+		</div>
+	</div>
+	
+	<label>Found {{total_items}} items</label>
+	
+	<div id = 'cards' class = row >
+		{%for data in final_data %}
+		<div id = 'card-col' class = 'col-sm-3' >
+		<div id='{{data.5}}' class="card" style='cursor:pointer' onclick="CardSubmit(this.id)">
+			<form id='card_{{data.5}}' action='{% url 'post_detail' %}' target = '_blank' method = 'POST'>
+				<input type = 'text' name='search' value = '{{data.1}}' style='display:none'>
+				<input type = 'image' src= "{{data.4}}" class="card-img-top">
+				<div class = "card-body">
+					<label class="card-text" style = 'color: black; font-size:12px'><b>{{data.0}}</b><br/>
+					Price: <b style ='color:green'>{{data.2}}</b><br/>{{data.3}}</label>
+				</div>
+			</form>
+		</div>
+		</div>
+		{%endfor%}
+	</div>
+	
+	<div id='page-nav2' class='row' style= 'margin-top: 100px; text-align:center;'>
+		<div class='col'>
+			{% if final_data.has_other_pages %}
+				
+				{% if final_data.has_previous %}
+					<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page=1'>First</a>
+					<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page={{ final_data.previous_page_number }}'>Previous</a>
+				{% endif %}
+				
+				{% for num in final_data.paginator.page_range %}
+					{% if final_data.number == num %}
+						<a style='background-color: #00163F; color:white' class = 'btn btn mb-4' href= '?page={{ num }}'>{{num}}</a>
+					
+					{% elif num > final_data.number|add:'-3' and num < final_data.number|add:'3' %}
+						<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page={{ num }}'>{{ num }}</a>
+			
+					
+					{% endif %}
+				{% endfor %}
+				
+				{% if final_data.has_next %}
+					<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page={{ final_data.next_page_number }}'>Next</a>
+					<a style='border-style: solid; border-color: #00163F;' class = 'btn btn-outline mb-4' href= '?page={{ final_data.paginator.num_pages }}'>Last</a>
+				{% endif %}
+				
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock new_search %}

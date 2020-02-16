@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block post_detail %}
+
+	
+<div class="post_detail-container">
+	<div class= 'col-sm-12'>
+		<h3 style= 'margin-top: 10px; margin-left: 20px'>{{title}}</h3>
+		<small style='margin-left: 20px'>Posted {{datetime}}</small>
+	</div>
+	
+	
+	<div class='col-sm-12'>
+		<div class="btn-group dropleft" style= 'float:right; right:20px'>
+			<button type="button" style='background-color:#00163F; color:white' class="btn btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+			 >
+			Share
+			</button>
+			<div style='width:300px; border-style:solid;border-width: 2px;border-color:#00163F;' class="dropdown-menu">
+			<!-- Dropdown menu links -->
+				<form class="px-4 py-3" id="shareForm">
+				  <div class="form-group">
+					<label for="sender">Your Name</label>
+					<input id='sender' class="form-control" type="text" name="sender" ></div>
+				  <div class="form-group">
+					<label for="recp">Friend's Email Address</label>
+					<input id='recp' class="form-control" type="text" name="recp"  required>
+					<input id='post_url' class="form-control" type="text" name="url" value='{{post_url}}' style='display:none'></div>
+				  
+					<button id='share_send_btn' style='background-color:#00163F; color:white' type="submit" class="btn btn" >Send</button>
+					
+				</form>
+			
+			
+			</div>
+		</div>
+	</div>
+	
+	
+	
+	
+	<div class= 'container' style='margin-top: 100px'>
+		<!-- Full-width images with number text -->
+	    <div class='row'>
+			
+			<div class='col-sm-6' style="text-align:center;">
+				<div class='tz-gallery'>
+				{% for img in imgs %}
+				<div class="mySlides">
+					<div class="numbertext">{{img.0}} / {{imglen}}</div>
+					<a class="lightbox" href="{{img.1}}">
+					<img id= 'big_image' src="{{img.1}}"   
+					style= 'max-width:100%; height: 400px; margin: 5px;'>
+					</a>
+				</div>
+				{% endfor %}
+				</div>
+				<!-- Next and previous buttons -->
+				<a class="prev" onclick="plusSlides(-1)" style='color:white' >&#10094;</a>
+				<a class="next" onclick="plusSlides(1)" style='color:white'>&#10095;</a>
+			</div>
+			
+			<div class='col-sm-6' style='height: 405px; overflow: auto;'>
+				<!-- Thumbnail images -->
+				<div class="row">
+					{% for img in imgs %}
+					<div class="col-sm-3">
+						<img class="demo cursor" src="{{img.1}}" onclick="currentSlide({{img.0}})">
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	
+	
+	
+		<div class='row' style='margin-top: 50px'>
+			<div class='col-sm-12'>
+				<div id= 'detail_body'>
+					<div style='display: {{price_display}}'>
+						<b style='font-size:18px'>Price: </b><b style='font-size:18px; color:green'>{{price}}</b><br/>
+						<small>(inclusive of all taxes)</small><br/><br/>
+					</div>
+					<div style='float:right'>
+						<ul style='margin-left: 20px'>
+						{% for attrb in attrb_list %}
+							<li id='li_attrb'><b>{{attrb}}</b></li>
+						{% endfor %}
+						</ul>
+						<br/><br/>
+						<iframe id= 'map' width="300" height="300" style='display:{{map_display}};'
+						  src="https://maps.google.com/maps?width=300&amp;height=300&amp;hl=en&amp;q={{map_cord}}&amp;ie=UTF8&amp;t=&amp;z=14&amp;iwloc=B&amp;output=embed">
+						</iframe>
+					</div>
+					<div style='font-size:16px'>
+						{% for line in body %}
+							{{line}}<br/>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.8.1/baguetteBox.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<script type='text/javascript'>
+	
+	baguetteBox.run('.tz-gallery');  //for gallery
+	
+	// for share form
+	$(document).on('submit', '#shareForm', function(e) {
+	e.preventDefault();   //prevents page from refreshing
+	
+	$.ajax({
+		type: 'POST',
+		url: '/share/mail/',
+		data:{
+			sen_name: $('#sender').val(),
+			rcp_mail: $('#recp').val(),
+			post_url: $('#post_url').val(),
+		},
+		success: function() {
+			alert('Email Sent !');
+
+		}
+	});
+	
+	
+});
+	
+</script>
+{% endblock post_detail %}
